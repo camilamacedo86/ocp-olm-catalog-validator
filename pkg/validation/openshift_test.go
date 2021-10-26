@@ -47,71 +47,91 @@ func Test_OpenShiftValidator(t *testing.T) {
 		{
 			name: "should pass when the olm annotation and index label are set with a " +
 				"value < 4.9 and has deprecated apis",
-			wantError: false,
+			wantError:   false,
 			wantWarning: true,
-			warnStrings: []string{"Warning: Value etcdoperator.v0.9.4: this bundle is using APIs which were deprecated and removed in v1.22. More info: https://kubernetes.io/docs/reference/using-api/deprecation-guide/#v1-22. Migrate the API(s) for CRD: ([\"etcdbackups.etcd.database.coreos.com\" \"etcdclusters.etcd.database.coreos.com\" \"etcdrestores.etcd.database.coreos.com\"])"},
+			warnStrings: []string{"Warning: Value etcdoperator.v0.9.4: this bundle is using APIs which were deprecated " +
+				"and removed in v1.22. More info: https://kubernetes.io/docs/reference/using-api/deprecation-guide/#v1-22. " +
+				"Migrate the API(s) for CRD: ([\"etcdbackups.etcd.database.coreos.com\" \"etcdclusters.etcd.database.coreos.com\" \"etcdrestores.etcd.database.coreos.com\"])"},
 			args: args{
 				bundleDir: "./testdata/valid_bundle_v1beta1",
 				annotations: map[string]string{
-					"olm.properties": fmt.Sprintf(`[{"type": "olm.maxOpenShiftVersion", "value": "4.8"}]`),
+					"olm.properties": `[{"type": "olm.maxOpenShiftVersion", "value": "4.8"}]`,
 				},
 			},
 		},
 		{
 			name: "should pass when the olm annotation and the label in the annotation file is set with a " +
 				"value < 4.9 and has deprecated apis",
-			wantError: false,
+			wantError:   false,
 			wantWarning: true,
-			warnStrings: []string{"Warning: Value etcdoperator.v0.9.4: this bundle is using APIs which were deprecated and removed in v1.22. More info: https://kubernetes.io/docs/reference/using-api/deprecation-guide/#v1-22. Migrate the API(s) for CRD: ([\"etcdbackups.etcd.database.coreos.com\" \"etcdclusters.etcd.database.coreos.com\" \"etcdrestores.etcd.database.coreos.com\"])"},
+			warnStrings: []string{"Warning: Value etcdoperator.v0.9.4: this bundle is using APIs which were deprecated " +
+				"and removed in v1.22. More info: https://kubernetes.io/docs/reference/using-api/deprecation-guide/#v1-22. " +
+				"Migrate the API(s) for CRD: ([\"etcdbackups.etcd.database.coreos.com\" \"etcdclusters.etcd.database.coreos.com\" \"etcdrestores.etcd.database.coreos.com\"])"},
 			args: args{
 				bundleDir: "./testdata/valid_bundle_v1beta1",
 				filePath:  "./testdata/annotations/annotations.yaml",
 				annotations: map[string]string{
-					"olm.properties": fmt.Sprintf(`[{"type": "olm.maxOpenShiftVersion", "value": "4.8"}]`),
+					"olm.properties": `[{"type": "olm.maxOpenShiftVersion", "value": "4.8"}]`,
 				},
 			},
 		},
 		{
 			name: "should pass when the olm annotation and index label are set with a " +
 				"value < 4.9 and has deprecated apis and with label flag v4.6-v4.8",
-			wantError: false,
+			wantError:   false,
 			wantWarning: true,
-			warnStrings: []string{"Warning: Value etcdoperator.v0.9.4: this bundle is using APIs which were deprecated and removed in v1.22. More info: https://kubernetes.io/docs/reference/using-api/deprecation-guide/#v1-22. Migrate the API(s) for CRD: ([\"etcdbackups.etcd.database.coreos.com\" \"etcdclusters.etcd.database.coreos.com\" \"etcdrestores.etcd.database.coreos.com\"])"},
+			warnStrings: []string{"Warning: Value etcdoperator.v0.9.4: this bundle is using APIs which were deprecated " +
+				"and removed in v1.22. More info: https://kubernetes.io/docs/reference/using-api/deprecation-guide/#v1-22. " +
+				"Migrate the API(s) for CRD: ([\"etcdbackups.etcd.database.coreos.com\" \"etcdclusters.etcd.database.coreos.com\" \"etcdrestores.etcd.database.coreos.com\"])"},
 			args: args{
 				bundleDir:     "./testdata/valid_bundle_v1beta1",
 				ocpLabelRange: "v4.6-v4.8",
 				annotations: map[string]string{
-					"olm.properties": fmt.Sprintf(`[{"type": "olm.maxOpenShiftVersion", "value": "4.8"}]`),
+					"olm.properties": `[{"type": "olm.maxOpenShiftVersion", "value": "4.8"}]`,
 				},
 			},
 		},
 		{
-			name:      "should fail because is missing the olm.annotation and has deprecated apis",
-			wantError: true,
+			name:        "should fail because is missing the olm.annotation and has deprecated apis",
+			wantError:   true,
 			wantWarning: true,
-			warnStrings: []string{"Warning: Value etcdoperator.v0.9.4: this bundle is using APIs which were deprecated and removed in v1.22. More info: https://kubernetes.io/docs/reference/using-api/deprecation-guide/#v1-22. Migrate the API(s) for CRD: ([\"etcdbackups.etcd.database.coreos.com\" \"etcdclusters.etcd.database.coreos.com\" \"etcdrestores.etcd.database.coreos.com\"])"},
+			warnStrings: []string{"Warning: Value etcdoperator.v0.9.4: this bundle is using APIs which were deprecated " +
+				"and removed in v1.22. More info: https://kubernetes.io/docs/reference/using-api/deprecation-guide/#v1-22. " +
+				"Migrate the API(s) for CRD: ([\"etcdbackups.etcd.database.coreos.com\" \"etcdclusters.etcd.database.coreos.com\" \"etcdrestores.etcd.database.coreos.com\"])"},
 			args: args{
 				bundleDir: "./testdata/valid_bundle_v1beta1",
 				filePath:  "./testdata/dockerfile/valid_bundle.Dockerfile",
 			},
-			errStrings: []string{"Error: Value : (etcdoperator.v0.9.4) csv.Annotations not specified olm.maxOpenShiftVersion for an OCP version < 4.9. This annotation is required to prevent the user from upgrading their OCP cluster before they have installed a version of their operator which is compatible with 4.9. Note that this bundle is using APIs which were deprecated and removed in v1.22. More info: https://kubernetes.io/docs/reference/using-api/deprecation-guide/#v1-22. Migrate the API(s) for CRD: ([\"etcdbackups.etcd.database.coreos.com\" \"etcdclusters.etcd.database.coreos.com\" \"etcdrestores.etcd.database.coreos.com\"])"},
+			errStrings: []string{fmt.Sprintf("Error: Value : (etcdoperator.v0.9.4) olm.maxOpenShiftVersion "+
+				"csv.Annotations not specified with an OCP version lower than 4.9. "+
+				"This annotation is required to prevent the user from upgrading their OCP cluster before they "+
+				"have installed a version of their operator which is compatible with 4.9. "+
+				"For further information see %s", ocpDocLinkManagingVersions)},
 		},
 		{
-			name:      "should fail when the olm annotation is set with a value >= 4.9 and has deprecated apis",
-			wantError: true,
+			name:        "should fail when the olm annotation is set with a value >= 4.9 and has deprecated apis",
+			wantError:   true,
 			wantWarning: true,
-			warnStrings: []string{"Warning: Value etcdoperator.v0.9.4: this bundle is using APIs which were deprecated and removed in v1.22. More info: https://kubernetes.io/docs/reference/using-api/deprecation-guide/#v1-22. Migrate the API(s) for CRD: ([\"etcdbackups.etcd.database.coreos.com\" \"etcdclusters.etcd.database.coreos.com\" \"etcdrestores.etcd.database.coreos.com\"])"},
+			warnStrings: []string{"Warning: Value etcdoperator.v0.9.4: this bundle is using APIs which were " +
+				"deprecated and removed in v1.22. " +
+				"More info: https://kubernetes.io/docs/reference/using-api/deprecation-guide/#v1-22. " +
+				"Migrate the API(s) for CRD: ([\"etcdbackups.etcd.database.coreos.com\" \"etcdclusters.etcd.database.coreos.com\" \"etcdrestores.etcd.database.coreos.com\"])"},
 			args: args{
 				bundleDir: "./testdata/valid_bundle_v1beta1",
 				filePath:  "./testdata/dockerfile/valid_bundle.Dockerfile",
 				annotations: map[string]string{
-					"olm.properties": fmt.Sprintf(`[{"type": "olm.maxOpenShiftVersion", "value": "4.9"}]`),
+					"olm.properties": `[{"type": "olm.maxOpenShiftVersion", "value": "4.9"}]`,
 				},
 			},
 			errStrings: []string{
-				"Error: Value : (etcdoperator.v0.9.4) csv.Annotations.olm.properties with the key and value for olm.maxOpenShiftVersion has the OCP version value 4.9 which is >= of 4.9. Note that this bundle is using APIs which were deprecated and removed in v1.22. More info: https://kubernetes.io/docs/reference/using-api/deprecation-guide/#v1-22. Migrate the API(s) for CRD: ([\"etcdbackups.etcd.database.coreos.com\" \"etcdclusters.etcd.database.coreos.com\" \"etcdrestores.etcd.database.coreos.com\"])",
-				"Error: Value : (etcdoperator.v0.9.4) the olm.maxOpenShiftVersion annotation with the value 4.9 to block the cluster upgrade does not contain in the range v4.6-v4.8 of versions where this solution should be distributed",
-
+				"Error: Value : (etcdoperator.v0.9.4) invalid value for olm.maxOpenShiftVersion. The OCP version value " +
+					"4.9 is >= of 4.9. Note that this bundle is using APIs which were deprecated and removed in v1.22. " +
+					"More info: https://kubernetes.io/docs/reference/using-api/deprecation-guide/#v1-22. " +
+					"Migrate the API(s) for CRD: ([\"etcdbackups.etcd.database.coreos.com\" \"etcdclusters.etcd.database.coreos.com\" \"etcdrestores.etcd.database.coreos.com\"])",
+				fmt.Sprintf("Error: Value : (etcdoperator.v0.9.4) the olm.maxOpenShiftVersion annotation with the "+
+					"value 4.9 to block the cluster upgrade is incompatible with the versions where this solutions should "+
+					"be distributed (com.redhat.openshift.versions with the value v4.6-v4.8). "+
+					"For further information see %s", ocpDocLinkManagingVersions),
 			},
 		},
 		{
@@ -121,7 +141,7 @@ func Test_OpenShiftValidator(t *testing.T) {
 				bundleDir: "./testdata/valid_bundle_v1beta1",
 				filePath:  "./testdata/dockerfile/valid_bundle.Dockerfile",
 				annotations: map[string]string{
-					"olm.properties": fmt.Sprintf(`[{"type": "olm.maxOpenShiftVersion", "value": "4.8.1"}]`),
+					"olm.properties": `[{"type": "olm.maxOpenShiftVersion", "value": "4.8.1"}]`,
 				},
 			},
 			warnStrings: []string{
@@ -130,29 +150,29 @@ func Test_OpenShiftValidator(t *testing.T) {
 			},
 		},
 		{
-			name:      "should pass when the maxOpenShiftVersion is semantically equivalent to <major>.<minor>.0",
-			wantError: false,
+			name:        "should pass when the maxOpenShiftVersion is semantically equivalent to <major>.<minor>.0",
+			wantError:   false,
 			wantWarning: true,
 			warnStrings: []string{"Warning: Value etcdoperator.v0.9.4: this bundle is using APIs which were deprecated and removed in v1.22. More info: https://kubernetes.io/docs/reference/using-api/deprecation-guide/#v1-22. Migrate the API(s) for CRD: ([\"etcdbackups.etcd.database.coreos.com\" \"etcdclusters.etcd.database.coreos.com\" \"etcdrestores.etcd.database.coreos.com\"])"},
 			args: args{
 				bundleDir: "./testdata/valid_bundle_v1beta1",
 				filePath:  "./testdata/dockerfile/valid_bundle.Dockerfile",
 				annotations: map[string]string{
-					"olm.properties": fmt.Sprintf(`[{"type": "olm.maxOpenShiftVersion", "value": "4.8.0+build"}]`),
+					"olm.properties": `[{"type": "olm.maxOpenShiftVersion", "value": "4.8.0+build"}]`,
 				},
 			},
 		},
 		{
 			name: "should pass when the olm annotation and index label are set with a " +
 				"value =v4.8 and has deprecated apis",
-			wantError: false,
+			wantError:   false,
 			wantWarning: true,
 			warnStrings: []string{"Warning: Value etcdoperator.v0.9.4: this bundle is using APIs which were deprecated and removed in v1.22. More info: https://kubernetes.io/docs/reference/using-api/deprecation-guide/#v1-22. Migrate the API(s) for CRD: ([\"etcdbackups.etcd.database.coreos.com\" \"etcdclusters.etcd.database.coreos.com\" \"etcdrestores.etcd.database.coreos.com\"])"},
 			args: args{
 				bundleDir: "./testdata/valid_bundle_v1beta1",
 				filePath:  "./testdata/dockerfile/valid_bundle_4_8.Dockerfile",
 				annotations: map[string]string{
-					"olm.properties": fmt.Sprintf(`[{"type": "olm.maxOpenShiftVersion", "value": "4.8"}]`),
+					"olm.properties": `[{"type": "olm.maxOpenShiftVersion", "value": "4.8"}]`,
 				},
 			},
 		},
@@ -193,7 +213,6 @@ func Test_OpenShiftValidator(t *testing.T) {
 
 func Test_checkOCPLabelsWithHasDeprecatedAPIs(t *testing.T) {
 	type args struct {
-		checks    OpenShiftOperatorChecks
 		indexPath string
 	}
 	tests := []struct {
@@ -209,16 +228,16 @@ func Test_checkOCPLabelsWithHasDeprecatedAPIs(t *testing.T) {
 			},
 		},
 		{
-			name:      "should warn when the OCP label is not found",
-			wantError: false,
+			name:        "should warn when the OCP label is not found",
+			wantError:   false,
 			wantWarning: true,
 			args: args{
 				indexPath: "./testdata/dockerfile/bundle_without_label.Dockerfile",
 			},
 		},
 		{
-			name:      "should fail when the the index path is an invalid path",
-			wantError: true,
+			name:        "should fail when the the index path is an invalid path",
+			wantError:   true,
 			wantWarning: true,
 			args: args{
 				indexPath: "./testdata/dockerfile/invalid",

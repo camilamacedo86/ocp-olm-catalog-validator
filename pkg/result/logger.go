@@ -17,7 +17,7 @@ package result
 import (
 	"io"
 
-log "github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 // NewLoggerTo returns a logger that writes logs to w.
