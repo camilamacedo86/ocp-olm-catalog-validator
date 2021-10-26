@@ -65,21 +65,11 @@ func runValidator(optionalValues map[string]string) []apierrors.ManifestResult {
 	return results
 }
 
-func validate(outputFormat string)  {
+func validate(outputFormat string) {
 	if len(os.Args) < 2 {
 		log.Fatal(errors.New("an image tag or directory is a required argument"))
 	}
 	if outputFormat != result.JSONAlpha1 && outputFormat != result.Text {
 		log.Fatal(fmt.Errorf("invalid value for output flag: %v", outputFormat))
 	}
-}
-
-
-// createLogger creates a new logrus Entry that is optionally verbose.
-func createLogger(verbose bool) *log.Entry {
-	logger := log.NewEntry(result.NewLoggerTo(os.Stderr))
-	if verbose {
-		logger.Logger.SetLevel(log.DebugLevel)
-	}
-	return logger
 }

@@ -51,9 +51,8 @@ const deprecateOcpLabelMsg1_22 = "this bundle is using APIs which were deprecate
 // OCP version where the apis v1beta1 is no longer supported
 const ocpVerV1beta1Unsupported = "4.9"
 
-// OCP version where the apis v1beta1 is no longer supported
-const latestOcpVerV1beta1Supported = "4.8"
-
+// OCP docs with the information to manage versions
+const ocpDocLinkManagingVersions = "https://docs.openshift.com/container-platform/4.8/operators/operator_sdk/osdk-working-bundle-images.html#osdk-control-compat_osdk-working-bundle-images"
 
 // Ensure that has the OCPMaxAnnotation
 const olmproperties = "olm.properties"
@@ -74,13 +73,13 @@ func openShiftValidator(objs ...interface{}) (results []errors.ManifestResult) {
 	var filePath = ""
 	var labelRange = ""
 	for _, obj := range objs {
-		switch obj.(type) {
+		switch obj := obj.(type) {
 		case map[string]string:
-			filePath = obj.(map[string]string)[FilePathKey]
+			filePath = obj[FilePathKey]
 			if len(filePath) > 0 {
 				break
 			}
-			labelRange = obj.(map[string]string)[RangeKey]
+			labelRange = obj[RangeKey]
 			if len(labelRange) > 0 {
 				break
 			}
@@ -111,11 +110,12 @@ type OpenShiftOperatorChecks struct {
 
 // validateOpenShiftBundle will check the bundle against the criteria to publish into OpenShift Catalog
 func validateOpenShiftBundle(bundle *manifests.Bundle, indexImagePath string, labelRange string) errors.ManifestResult {
-	result := errors.ManifestResult{Name: bundle.Name}
+	result := errors.ManifestResult{}
 	if bundle == nil {
 		result.Add(errors.ErrInvalidBundle("Bundle is nil", nil))
 		return result
 	}
+	result.Name = bundle.Name
 
 	if bundle.CSV == nil {
 		result.Add(errors.ErrInvalidBundle("Bundle csv is nil", bundle.Name))
@@ -151,7 +151,6 @@ func validateOpenShiftBundle(bundle *manifests.Bundle, indexImagePath string, la
 		result.Add(errors.WarnInvalidCSV(warn.Error(), bundle.CSV.GetName()))
 	}
 
-
 	return result
 }
 
@@ -159,7 +158,6 @@ type propertiesAnnotation struct {
 	Type  string
 	Value string
 }
-
 
 // checkMaxVersionAnnotation will verify if the OpenShiftVersion property was informed
 func getMaxAnnotationValue(checks OpenShiftOperatorChecks) OpenShiftOperatorChecks {
@@ -191,13 +189,13 @@ func getMaxAnnotationValue(checks OpenShiftOperatorChecks) OpenShiftOperatorChec
 // checkMaxVersionAnnotation will verify if the OpenShiftVersion property was informed
 func checkMaxVersionAnnotation(checks OpenShiftOperatorChecks) OpenShiftOperatorChecks {
 	if len(checks.deprecateAPIsMsg) > 0 && len(checks.maxValue) < 1 {
-		checks.errs = append(checks.errs, fmt.Errorf("csv.Annotations not specified %s for an "+
-			"OCP version < %s. This annotation is required to prevent the user from upgrading their OCP cluster "+
-			"before they have installed a version of their operator which is compatible with %s. Note that %s",
+		checks.errs = append(checks.errs, fmt.Errorf("%s csv.Annotations not specified with an "+
+			"OCP version lower than %s. This annotation is required to prevent the user from upgrading their OCP cluster "+
+			"before they have installed a version of their operator which is compatible with %s. For further information see %s",
 			olmmaxOcpVersion,
 			ocpVerV1beta1Unsupported,
 			ocpVerV1beta1Unsupported,
-			checks.deprecateAPIsMsg))
+			ocpDocLinkManagingVersions))
 		return checks
 	}
 
@@ -221,9 +219,8 @@ func checkMaxVersionAnnotation(checks OpenShiftOperatorChecks) OpenShiftOperator
 		if len(checks.deprecateAPIsMsg) > 0 {
 			semVerOCPV1beta1Unsupported, _ := semver.ParseTolerant(ocpVerV1beta1Unsupported)
 			if semVerVersionMaxOcp.GE(semVerOCPV1beta1Unsupported) {
-				checks.errs = append(checks.errs, fmt.Errorf("csv.Annotations.%s with the "+
-					"key and value for %s has the OCP version value %s which is >= of %s. Note that %s",
-					olmproperties,
+				checks.errs = append(checks.errs, fmt.Errorf("invalid value for %s. "+
+					"The OCP version value %s is >= of %s. Note that %s",
 					olmmaxOcpVersion,
 					checks.maxValue,
 					ocpVerV1beta1Unsupported,
@@ -236,7 +233,6 @@ func checkMaxVersionAnnotation(checks OpenShiftOperatorChecks) OpenShiftOperator
 	return checks
 }
 
-
 // checkOCPLabels will ensure that OCP labels are set and with a ocp targetVersion < 4.9
 func getOCPLabel(checks OpenShiftOperatorChecks) OpenShiftOperatorChecks {
 	if hasOCPLabelInfo(checks) {
@@ -247,7 +243,6 @@ func getOCPLabel(checks OpenShiftOperatorChecks) OpenShiftOperatorChecks {
 	}
 	return checks
 }
-
 
 // checkOCPLabels will ensure that OCP labels are set and with a ocp targetVersion < 4.9
 func checkOCPLabel(checks OpenShiftOperatorChecks) OpenShiftOperatorChecks {
@@ -319,8 +314,6 @@ func getOCPLabelFromFile(checks OpenShiftOperatorChecks) OpenShiftOperatorChecks
 	return checks
 }
 
-
-
 func validateOCPLabelWithMaxVersion(checks OpenShiftOperatorChecks) OpenShiftOperatorChecks {
 	if len(checks.maxValue) > 0 && len(checks.rangeValue) > 0 {
 		isPartOfTarget, err := rangeContainsVersion(checks.rangeValue, cleanStringToGetTheVersionToParse(checks.maxValue), true)
@@ -330,11 +323,14 @@ func validateOCPLabelWithMaxVersion(checks OpenShiftOperatorChecks) OpenShiftOpe
 			return checks
 		}
 		if !isPartOfTarget {
-			checks.errs = append(checks.errs, fmt.Errorf("the %s annotation with the value %s to block the cluster upgrade" +
-				" does not contain in the range %s of versions where this solution should be distributed",
+			checks.errs = append(checks.errs, fmt.Errorf("the %s annotation with the value %s to block the "+
+				"cluster upgrade is incompatible with the versions where this solutions should be distributed "+
+				"(%s with the value %s). For further information see %s",
 				olmmaxOcpVersion,
 				checks.maxValue,
-				checks.rangeValue))
+				ocpLabel,
+				checks.rangeValue,
+				ocpDocLinkManagingVersions))
 			return checks
 		}
 	}
@@ -344,7 +340,7 @@ func validateOCPLabelWithMaxVersion(checks OpenShiftOperatorChecks) OpenShiftOpe
 // todo: the ocp targetVersion version ought to be passed as parameter
 // this code needs to be improved with the check for deprecated apis before/for 1.25
 func checkOCPLabelFor4_9(checks OpenShiftOperatorChecks) OpenShiftOperatorChecks {
-	if len(checks.deprecateAPIsMsg) > 0 && len(checks.rangeValue) > 0  {
+	if len(checks.deprecateAPIsMsg) > 0 && len(checks.rangeValue) > 0 {
 		isPartOfTarget, err := rangeContainsVersion(checks.rangeValue, ocpVerV1beta1Unsupported, false)
 		if err != nil {
 			checks.errs = append(checks.errs, fmt.Errorf("error to validate the OpenShit label range: %s",
@@ -380,9 +376,9 @@ func rangeContainsVersion(r string, v string, tolerantParse bool) (bool, error) 
 	v = strings.TrimPrefix(v, "v")
 	compV, err := semver.Parse(v + ".0")
 	if err != nil {
-		splitTarget :=strings.Split(v, ".")
+		splitTarget := strings.Split(v, ".")
 		if tolerantParse {
-			compV, err = semver.Parse(splitTarget[0] +"." + splitTarget[1] + ".0")
+			compV, err = semver.Parse(splitTarget[0] + "." + splitTarget[1] + ".0")
 			if err != nil {
 				return false, fmt.Errorf("invalid truncated version %q: %t", compV, err)
 			}
