@@ -10,7 +10,7 @@ function listFiles() {
 }
 
 function listPkgDirs() {
-	go list -f '{{.Dir}}' ./cmd/... ./pkg/... ./hack/... | grep -v generated
+	go list -f '{{.Dir}}' ./cmd/... ./pkg/... | grep -v generated
 }
 
 
