@@ -27,7 +27,6 @@ jobs:
         os:
           - ubuntu-latest
           - macos-latest
-          - windows-latest
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -38,7 +37,7 @@ jobs:
           make build
           chmod +x bin/ocp-olm-catalog-validator
           echo "asset_path=bin/ocp-olm-catalog-validator" >> $GITHUB_ENV
-          echo "asset_name=$(go env GOOS)-$(go env GOARCH)-ocp-olm-catalog-validator(go env GOEXE)" >> $GITHUB_ENV
+          echo "asset_name=$(go env GOOS)-$(go env GOARCH)-ocp-olm-catalog-validator$(go env GOEXE)" >> $GITHUB_ENV
       - run: make ${{ env.asset_path }}
       - uses: actions/upload-release-asset@v1
         env:
