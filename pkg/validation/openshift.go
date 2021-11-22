@@ -32,10 +32,12 @@ import (
 
 // FilePathKey defines the key which can be used by its consumers
 // to inform where their index bundle image or annotations path to be checked
+// (e.g. --optional-values="file==/path")
 const FilePathKey = "file"
 
 // RangeKey defines the key which can be used by its consumers
 // to inform where their label range value only to be checked
+// (e.g. --optional-values="range==v4.5-v4.8")
 const RangeKey = "range"
 
 // ocpLabel defines the OCP label which allow configure the OCP versions
@@ -66,7 +68,21 @@ const olmmaxOcpVersion = "olm.maxOpenShiftVersion"
 // - range: expected an string value with the syntax described in https://redhat-connect.gitbook.io/certified-operator-guide/ocp-deployment/operator-metadata/bundle-directory/managing-openshift-versions
 //
 // Be aware that this validator is in alpha stage and can be changed. Also, the intention here is to decouple
-// this validator and move it out of this project.
+// this validator and move it out of this project. Following its current checks:
+//
+// - Ensure that when found the usage of the removed APIs on 1.22/OCP 4.9 the CSV has the annotation
+// olm.maxOpenShiftVersion with a value <= 4.8 and the OCP label com.redhat.openshift.versions with
+// a value that does not contain OCP 4.9 or upper versions.
+//
+// - Ensure that the value informed in olm.maxOpenShiftVersion is compatible with the value informed
+// via the com.redhat.openshift.versions label.
+//
+// - Ensure that the olm.maxOpenShiftVersion value respects semver
+//
+// - Ensure that the com.redhat.openshift.versions value respects semver
+//
+// Note the OCP label has been only be checked when the file is informed via the optional key values and with the file key. (Be aware
+// that we might want to begin to check the metadata/annotations.yaml by default)
 var OpenShiftValidator interfaces.Validator = interfaces.ValidatorFunc(openShiftValidator)
 
 func openShiftValidator(objs ...interface{}) (results []errors.ManifestResult) {
