@@ -11,7 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
+//
+// TODO: Move the above implementation to the operator-frameowrk/api project
+// to allow its re-usage. Any validator and SDK would ought to leverage on that.
 package result
 
 import (
